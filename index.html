@@ -154,15 +154,15 @@
     <section class="hero">
       <div class="eyebrow">Global news intelligence</div>
       <h1>One issue.<br><span>Different headlines.</span></h1>
-      <p class="lead">Search an international issue across curated national publisher groups. Compare headline keywords, explore source coverage, and save articles side by side.</p>
+      <p class="lead">Search an international issue across localized news markets or curated national publisher groups. Compare headline keywords, explore source coverage, and save articles side by side.</p>
       <form id="search-form" class="search-panel">
         <label class="form-label" for="query">Choose an international issue</label>
         <div class="search-line">
-          <input id="query" type="search" required maxlength="180" autocomplete="off" value="Taiwan Strait" placeholder="e.g. Taiwan Strait, Ukraine peace talks">
+          <input id="query" type="search" required maxlength="180" autocomplete="off" placeholder="e.g. APEC">
           <button id="search-button" type="submit" class="primary">Compare coverage</button>
         </div>
-        <div class="market-top">
-          <label class="form-label" id="markets-label">Choose 2–3 publisher countries</label>
+        <label class="form-label" for="search-mode">Search mode</label><select id="search-mode" style="background:#192128;color:#fff;padding:10px;border:1px solid #39434d;border-radius:6px;margin:8px 0"><option value="market">Search Market</option><option value="publisher">Publisher Country</option></select><p class="fine" id="mode-note">Compare localized Google News results, regardless of publisher country.</p><div class="market-top">
+          <label class="form-label" id="markets-label">Choose 2–3 countries</label>
           <p id="request-count">3 selected · 3 API searches</p>
         </div>
         <div class="market-grid" role="group" aria-labelledby="markets-label">
@@ -173,12 +173,12 @@
           <label class="market"><input name="market" type="checkbox" value="fr">France</label>
           <label class="market"><input name="market" type="checkbox" value="de">Germany</label>
         </div>
-        <p class="fine">Each country uses one localized SerpApi search, filtered to a curated publisher-domain list. Unlisted publishers are excluded. Publisher country does not establish political viewpoint.</p>
+        <p class="fine">Each country uses one localized SerpApi search. Publisher Country mode excludes unlisted domains. Neither mode establishes political viewpoint.</p>
       </form>
       <p id="status" role="status" aria-live="polite">Select countries and search to explore live results.</p>
     </section>
 
-    <div id="results-area" class="hidden">
+    <nav class="tabs" aria-label="Results navigation" style="position:sticky;top:0;z-index:5;background:#0b0e13;padding:12px"><button class="secondary" type="button" data-panel="coverage-section">News Results</button><button class="secondary" type="button" data-panel="keywords-section">Keyword Analysis</button><button class="secondary" type="button" data-panel="board-section" id="board-nav">Article Comparison (0)</button></nav><div id="results-area" class="hidden">
       <div class="stats" aria-label="Search result statistics">
         <div class="stat"><strong id="stat-markets">0</strong><span>Countries searched</span></div>
         <div class="stat"><strong id="stat-articles">0</strong><span>Articles returned</span></div>
@@ -187,7 +187,7 @@
 
       <section class="section" id="keywords-section" aria-labelledby="keywords-title">
         <div class="section-head">
-          <div><div class="eyebrow">01 / Headline signals</div><h2 class="section-heading" id="keywords-title">Keywords by publisher country</h2><p class="section-subtitle">Most frequent English terms in successfully translated headlines.</p></div>
+          <div><div class="eyebrow">01 / Headline signals</div><h2 class="section-heading" id="keywords-title">Keywords by country</h2><p class="section-subtitle">Most frequent English terms in successfully translated headlines.</p></div>
           <span class="section-number">Title data only</span>
         </div>
         <div class="keyword-grid" id="keyword-grid"></div>
@@ -196,10 +196,10 @@
 
       <section class="section" id="coverage-section" aria-labelledby="coverage-title">
         <div class="section-head">
-          <div><div class="eyebrow">02 / Explore sources</div><h2 class="section-heading" id="coverage-title">Country-by-country coverage</h2><p class="section-subtitle">Switch publisher countries to see real article headlines, publishers and links.</p></div>
+          <div><div class="eyebrow">02 / Explore sources</div><h2 class="section-heading" id="coverage-title">Country-by-country coverage</h2><p class="section-subtitle">Switch countries to see real article headlines, publishers and links.</p></div>
           <span class="section-number" id="coverage-count">0 articles</span>
         </div>
-        <div class="tabs" id="market-tabs" role="tablist" aria-label="Publisher countries"></div>
+        <div class="tabs" id="market-tabs" role="tablist" aria-label="Countries"></div>
         <div id="article-grid" class="article-grid"></div>
       </section>
 
@@ -216,7 +216,7 @@
           <div class="board-grid" id="board-grid"></div>
           <div id="headline-analysis" class="hidden">
             <div class="compare-summary"><h3>Common keywords</h3><div class="chips" id="common-terms"></div><p class="fine">Mint = present in every selected headline. Amber = present in only one. Other terms are neutral.</p></div>
-            <div class="compare-scroll"><table class="compare-table"><thead><tr><th>Headline / source link</th><th>Publisher / country</th><th>Published</th><th>Headline keywords</th><th>Unique keywords</th></tr></thead><tbody id="compare-rows"></tbody></table></div>
+            <div class="compare-scroll"><table class="compare-table"><thead><tr><th>Headline / source link</th><th>Publisher / country or market</th><th>Published</th><th>Headline keywords</th><th>Unique keywords</th></tr></thead><tbody id="compare-rows"></tbody></table></div>
             <div class="article-actions"><button class="secondary" id="copy-comparison" type="button">Copy comparison</button><span id="copy-feedback" role="status"></span></div>
             <p class="fine">Exact English word matching after machine translation (MyMemory). No stemming or AI viewpoint analysis. Comparisons require all selected headlines to be available in English.</p>
           </div>
@@ -239,7 +239,7 @@
       fr: {name: "France", lang: "fr"},
       de: {name: "Germany", lang: "de"}
     };
-    const stopWords = new Set(("the and for with from that this have been into over after before about " +
+    const stopWords = new Set(("a an of at is in on to as by or but if so no not nor be am do does did can may might must shall it me my our your he him them we i us its out up off down per via about between during through within without also just only very such each any all some both other another here then once again the and for with from that this have been into over after before about " +
       "their there these those which when where while would could should will were was are " +
       "you his her has had she they its amid more than under against what who why how " +
       "new news says said say report reports latest updated live today days year years " +
@@ -247,6 +247,7 @@
       "und der die das den dem ein eine einer einem zu von auf mit sich noch nach " +
       "대해 대한 관련 있다 있는 없는 위한 위해 에서 으로 그리고 하지만 때문 하고 한다 했다 " +
       "する について から まで など その これ ある いる").split(/\s+/));
+    let currentMode = "market";
     let groups = [];
     let active = "us";
     let currentQuery = "";
@@ -277,17 +278,13 @@
       catch { return null; }
     }
     function tokenize(title, language) {
-      let words = [];
-      if (typeof Intl.Segmenter === "function") {
-        const segmenter = new Intl.Segmenter(language, {granularity: "word"});
-        words = [...segmenter.segment(title)].filter(item => item.isWordLike).map(item => item.segment);
-      } else {
-        words = title.match(/[\p{L}\p{N}]+/gu) || [];
-      }
-      return words.map(word => word.toLocaleLowerCase(language).normalize("NFKC"))
-        .map(word => word.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ""))
-        .filter(word => word.length >= 2 && !stopWords.has(word) && /^[a-z]+$/.test(word));
+      return (title.normalize("NFKC").match(/[A-Za-z][A-Za-z0-9]*/g)||[]).map(word => {
+        if (/^(US|UN|EU|UK|G7|G20|APEC|NATO|ASEAN|IMF|WTO)$/.test(word)) return word.toLowerCase();
+        const t=word.toLowerCase(); return t.length>=2 && !stopWords.has(t) && /^[a-z]+$/.test(t) ? t : null;
+      }).filter(Boolean);
     }
+    $("search-mode").addEventListener("change",()=>{$("mode-note").textContent=$("search-mode").value==="market"?"Compare localized Google News results, regardless of publisher country.":"Only registered publisher domains are included for each country.";});
+    document.querySelectorAll("[data-panel]").forEach(b=>b.addEventListener("click",()=>{if(!groups.length){setStatus("Search for an issue first.");return;} $(b.dataset.panel).scrollIntoView({behavior:"smooth",block:"start"});}));
     function keywordStats(group) {
       const excluded = new Set(tokenize(currentQuery, "en"));
       const counts = new Map();
@@ -367,7 +364,7 @@
         return;
       }
       if (!group.articles.length) {
-        wrap.append(element("div", "empty", "No matching registered publishers found. Try another search term."));
+        wrap.append(element("div", "empty", currentMode==="publisher"?"No matching registered publishers found. Try another search term.":"No articles found. Try another search term."));
         return;
       }
       group.articles.forEach(article => {
@@ -434,13 +431,14 @@
     $("copy-comparison").addEventListener("click",async()=>{
       const entries=[...selected.values()]; if(entries.length<2)return;
       const a=compareTerms(entries);
-      const text=["GLOBAL PERSPECTIVE — Headline comparison", "Issue: "+currentQuery,"Common keywords: "+(a.incomplete?"Unavailable":a.common.join(", ")||"None"), ...entries.map(({article,market},i)=>["",`${i+1}. ${article.title}`,"English: "+(article.english||"Unavailable"),"Publisher: "+(article.source||"Unknown publisher"),"Publisher country: "+market,"Published: "+(article.date||"Date unavailable"),"Keywords: "+(a.terms[i].join(", ")||"None"),"Unique keywords: "+(a.incomplete?"Unavailable":a.unique[i].join(", ")||"None"),"Original: "+article.link].join("\n")),"","Source: SerpApi Google News; English translation: MyMemory. Exact headline terms only."].join("\n");
+      const text=["GLOBAL PERSPECTIVE — Headline comparison", "Issue: "+currentQuery,"Common keywords: "+(a.incomplete?"Unavailable":a.common.join(", ")||"None"), ...entries.map(({article,market},i)=>["",`${i+1}. ${article.title}`,"English: "+(article.english||"Unavailable"),"Publisher: "+(article.source||"Unknown publisher"),(currentMode==="publisher"?"Publisher country: ":"Search market: ")+market,"Published: "+(article.date||"Date unavailable"),"Keywords: "+(a.terms[i].join(", ")||"None"),"Unique keywords: "+(a.incomplete?"Unavailable":a.unique[i].join(", ")||"None"),"Original: "+article.link].join("\n")),"","Source: SerpApi Google News; English translation: MyMemory. Exact headline terms only."].join("\n");
       try { await navigator.clipboard.writeText(text); $("copy-feedback").textContent="Comparison copied."; }
       catch { const field=element("textarea"); field.value=text; field.setAttribute("aria-label","Comparison text"); field.style.width="100%"; $("copy-feedback").replaceChildren(document.createTextNode("Copy manually (Ctrl+C): "),field); field.select(); }
     });
     function renderBoard() {
       const wrap = $("board-grid");
       wrap.replaceChildren();
+      $("board-nav").textContent = "Article Comparison ("+selected.size+")";
       $("board-count").textContent = selected.size + " / 3 selected";
       $("clear-board").disabled = selected.size === 0;
       $("board-instruction").textContent = selected.size < 2
@@ -455,7 +453,7 @@
       }
       for (const [i,{article, market, lang}] of entries.entries()) {
         const card = element("article", "board-item");
-        card.append(element("span", "publisher", market + " publisher"));
+        card.append(element("span", "publisher", market + (currentMode==="publisher"?" publisher":" search market")));
         const h3 = document.createElement("h3");
         const link = document.createElement("a");
         link.href = article.link;
@@ -496,6 +494,7 @@
       const url = new URL("/api/news", window.location.origin);
       url.searchParams.set("q", query);
       url.searchParams.set("gl", code);
+      url.searchParams.set("mode", currentMode);
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 30000);
       let response;
@@ -514,13 +513,12 @@
       return articles;
     }
     async function translateArticles(articles, lang, country) {
-      if(lang === "en") { articles.forEach(a=>a.english=a.title); return; }
-      const pending=articles.slice(0,15);
+      const pending=articles.filter(a=>{const nonLatin=/[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(a.title); if(lang==="en" && !nonLatin){a.english=a.title;return false;} return true;}).slice(0,15);
       for(let i=0;i<pending.length;i+=3) {
         setStatus("Translating " + country + " headlines (" + Math.min(i+3,pending.length) + "/" + pending.length + ")…");
         await Promise.all(pending.slice(i,i+3).map(async a=>{
           try {
-            const r=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:a.title,lang}),signal:AbortSignal.timeout(12000)});
+            const r=await fetch("/api/translate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:a.title,lang:/\p{Script=Hangul}/u.test(a.title)?"ko":/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(a.title)?"ja":lang}),signal:AbortSignal.timeout(12000)});
             const d=await r.json(); if(r.ok && typeof d.translation==="string" && d.translation.trim() && !/[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(d.translation)) a.english=d.translation;
           } catch {} 
         }));
@@ -531,11 +529,14 @@
       const query = $("query").value.trim();
       const codes = checkedMarkets();
       if (!query) { setStatus("Enter an international issue.", true); return; }
-      if (codes.length < 2 || codes.length > 3) { setStatus("Select two or three publisher countries.", true); return; }
+      if (codes.length < 2 || codes.length > 3) { setStatus("Select two or three countries.", true); return; }
       const button = $("search-button");
       button.disabled = true;
       marketCheckboxes.forEach(el => { el.disabled = true; });
       currentQuery = query;
+      currentMode = $("search-mode").value;
+      $("search-mode").disabled=true;
+      $("keywords-title").textContent=currentMode==="publisher"?"Keywords by publisher country":"Keywords by search market";
       selected.clear();
       groups = [];
       $("results-area").classList.add("hidden");
@@ -557,9 +558,10 @@
         const total = groups.reduce((n, group) => n + group.articles.length, 0);
         setStatus(failures
           ? total + " articles loaded. " + failures + " country search(es) failed; see each market for details."
-          : total + " real articles loaded across " + groups.length + " publisher countries.", failures > 0);
+          : total + " real articles loaded across " + groups.length + (currentMode==="publisher"?" publisher countries.":" search markets."), failures > 0);
       } finally {
         button.disabled = false;
+        $("search-mode").disabled=false;
         updateMarketSelection();
       }
     });

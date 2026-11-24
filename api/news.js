@@ -41,7 +41,7 @@ function flattenStories(entries, articles) {
   }
 }
 
-function normalizeArticles(newsResults, code) {
+function normalizeArticles(newsResults, code, mode) {
   const collected = [];
   flattenStories(newsResults, collected);
   const seen = new Set();
@@ -53,7 +53,7 @@ function normalizeArticles(newsResults, code) {
     } catch {
       return false;
     }
-    if (!matchesCountry(url.href, code)) return false;
+    if (mode === "publisher" && !matchesCountry(url.href, code)) return false;
     if (seen.has(url.href)) return false;
     seen.add(url.href);
     return true;
@@ -75,6 +75,7 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({error: "Unsupported news market."});
   }
 
+  const mode = req.query.mode === "market" ? "market" : "publisher";
   const params = new URLSearchParams({
     engine: "google_news",
     q: query,
@@ -107,7 +108,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       market: gl,
       language: MARKET_LANGUAGES[gl],
-      articles: normalizeArticles(response.news_results, gl)
+      articles: normalizeArticles(response.news_results, gl, mode)
     });
   } catch (error) {
     return res.status(502).json({
