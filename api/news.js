@@ -9,6 +9,20 @@ const MARKET_LANGUAGES = Object.freeze({
   de: "de"
 });
 
+// Curated publisher-domain allowlist, not a claim about editorial viewpoint.
+const DOMAINS = {
+ us: 'cnn.com abcnews.go.com nbcnews.com nytimes.com washingtonpost.com apnews.com wsj.com npr.org cbsnews.com foxnews.com usatoday.com politico.com bloomberg.com',
+ uk: 'bbc.com bbc.co.uk theguardian.com ft.com reuters.com independent.co.uk telegraph.co.uk sky.com thetimes.co.uk economist.com',
+ kr: 'yna.co.kr yonhapnews.co.kr kbs.co.kr mbc.co.kr imbc.com sbs.co.kr hani.co.kr chosun.com joongang.co.kr donga.com khan.co.kr koreaherald.com koreatimes.co.kr',
+ jp: 'nhk.or.jp nhk.jp asahi.com yomiuri.co.jp mainichi.jp nikkei.com japantimes.co.jp kyodonews.net 47news.jp sankei.com',
+ fr: 'lemonde.fr lefigaro.fr france24.com rfi.fr liberation.fr lesechos.fr francetvinfo.fr afp.com',
+ de: 'dw.com spiegel.de zeit.de faz.net sueddeutsche.de tagesschau.de zdf.de welt.de handelsblatt.com'
+};
+function matchesCountry(link, code) {
+ const host=new URL(link).hostname.toLowerCase();
+ return DOMAINS[code].split(' ').some(d=>host===d||host.endsWith('.'+d));
+}
+
 function flattenStories(entries, articles) {
   if (!Array.isArray(entries)) return;
   for (const item of entries) {
@@ -27,7 +41,7 @@ function flattenStories(entries, articles) {
   }
 }
 
-function normalizeArticles(newsResults) {
+function normalizeArticles(newsResults, code) {
   const collected = [];
   flattenStories(newsResults, collected);
   const seen = new Set();
@@ -39,6 +53,7 @@ function normalizeArticles(newsResults) {
     } catch {
       return false;
     }
+    if (!matchesCountry(url.href, code)) return false;
     if (seen.has(url.href)) return false;
     seen.add(url.href);
     return true;
@@ -92,7 +107,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       market: gl,
       language: MARKET_LANGUAGES[gl],
-      articles: normalizeArticles(response.news_results)
+      articles: normalizeArticles(response.news_results, gl)
     });
   } catch (error) {
     return res.status(502).json({
