@@ -154,7 +154,7 @@
     <section class="hero">
       <div class="eyebrow">Global news intelligence</div>
       <h1>One issue.<br><span>Different headlines.</span></h1>
-      <p class="lead">Search an international issue across localized news markets or curated national publisher groups. Compare headline keywords, explore source coverage, and save articles side by side.</p>
+      <p class="lead">Search an international issue across localized news markets or curated national publisher groups. Discover related coverage, explore topic clusters, and save articles side by side.</p>
       <form id="search-form" class="search-panel">
         <label class="form-label" for="query">Choose an international issue</label>
         <div class="search-line">
@@ -178,22 +178,15 @@
       <p id="status" role="status" aria-live="polite">Select countries and search to explore live results.</p>
     </section>
 
-    <nav class="tabs" aria-label="Results navigation" style="position:sticky;top:0;z-index:5;background:#0b0e13;padding:12px"><button class="secondary" type="button" data-panel="coverage-section">News Results</button><button class="secondary" type="button" data-panel="keywords-section">Keyword Analysis</button><button class="secondary" type="button" data-panel="board-section" id="board-nav">Article Comparison (0)</button></nav><div id="results-area" class="hidden">
+    <nav class="tabs" aria-label="Results navigation" style="position:sticky;top:0;z-index:5;background:#0b0e13;padding:12px"><button class="secondary" type="button" data-panel="coverage-section">News Results</button><button class="secondary" type="button" data-panel="related-section">Related Coverage</button><button class="secondary" type="button" data-panel="keywords-section">Topic Clusters</button><button class="secondary" type="button" data-panel="board-section" id="board-nav">Article Comparison (0)</button></nav><div id="results-area" class="hidden">
       <div class="stats" aria-label="Search result statistics">
         <div class="stat"><strong id="stat-markets">0</strong><span>Countries searched</span></div>
         <div class="stat"><strong id="stat-articles">0</strong><span>Articles returned</span></div>
         <div class="stat"><strong id="stat-publishers">0</strong><span>Distinct publishers</span></div>
       </div>
 
-      <section class="section" id="keywords-section" aria-labelledby="keywords-title">
-        <div class="section-head">
-          <div><div class="eyebrow">01 / Headline signals</div><h2 class="section-heading" id="keywords-title">Keywords by country</h2><p class="section-subtitle">Most frequent English terms in successfully translated headlines.</p></div>
-          <span class="section-number">Title data only</span>
-        </div>
-        <div class="keyword-grid" id="keyword-grid"></div>
-        <p class="callout">Bars show the share of analyzed English headlines containing each term. For non-English countries, up to 15 headlines per search are submitted for translation; other headlines and failed translations are excluded from analysis. Search words and common filler words are excluded. No article body or AI analysis is used.</p>
-      </section>
-
+      <section class="section" id="related-section"><div class="section-head"><div><h2 class="section-heading">Related Coverage</h2><p class="section-subtitle">Choose an article to find similar headlines in other selected countries.</p></div></div><div id="related-results" class="board"></div><p class="fine">TF-IDF cosine similarity of English headlines, not a probability of covering the same event. Identical URLs are excluded.</p></section>
+      <section class="section" id="keywords-section" aria-labelledby="keywords-title"><div class="section-head"><div><h2 class="section-heading" id="keywords-title">Topic Clusters</h2><p class="section-subtitle">Explore groups of lexically similar English headlines.</p></div></div><div id="keyword-grid" class="board-grid"></div><p class="fine">Average-linkage clustering; minimum similarity 0.20. Labels are representative terms, not AI summaries. Untranslated headlines and repeated URLs are excluded from clustering; isolated headlines remain separate.</p></section>
       <section class="section" id="coverage-section" aria-labelledby="coverage-title">
         <div class="section-head">
           <div><div class="eyebrow">02 / Explore sources</div><h2 class="section-heading" id="coverage-title">Country-by-country coverage</h2><p class="section-subtitle">Switch countries to see real article headlines, publishers and links.</p></div>
@@ -205,7 +198,7 @@
 
       <section class="section" id="board-section" aria-labelledby="board-title">
         <div class="section-head">
-          <div><div class="eyebrow">03 / Your reading board</div><h2 class="section-heading" id="board-title">Headline comparison</h2><p class="section-subtitle">Select two or three articles to compare shared and distinctive headline terms.</p></div>
+          <div><div class="eyebrow">03 / Your reading board</div><h2 class="section-heading" id="board-title">Headline comparison</h2><p class="section-subtitle">Select two or three articles to compare headlines and sources.</p></div>
           <span class="section-number" id="board-count">0 / 3 selected</span>
         </div>
         <div class="board">
@@ -215,10 +208,9 @@
           </div>
           <div class="board-grid" id="board-grid"></div>
           <div id="headline-analysis" class="hidden">
-            <div class="compare-summary"><h3>Common keywords</h3><div class="chips" id="common-terms"></div><p class="fine">Mint = present in every selected headline. Amber = present in only one. Other terms are neutral.</p></div>
-            <div class="compare-scroll"><table class="compare-table"><thead><tr><th>Headline / source link</th><th>Publisher / country or market</th><th>Published</th><th>Headline keywords</th><th>Unique keywords</th></tr></thead><tbody id="compare-rows"></tbody></table></div>
+            <div class="compare-scroll"><table class="compare-table"><thead><tr><th>Headline / source link</th><th>Publisher / country or market</th><th>Published</th></tr></thead><tbody id="compare-rows"></tbody></table></div>
             <div class="article-actions"><button class="secondary" id="copy-comparison" type="button">Copy comparison</button><span id="copy-feedback" role="status"></span></div>
-            <p class="fine">Exact English word matching after machine translation (MyMemory). No stemming or AI viewpoint analysis. Comparisons require all selected headlines to be available in English.</p>
+            <p class="fine">English translations use MyMemory. Open the original articles to compare their arguments.</p>
           </div>
           <div class="callout">The comparison board displays source metadata and headline text, not inferred article claims or editorial stances. Open original reports to compare their arguments.</div>
         </div>
@@ -285,49 +277,25 @@
     }
     $("search-mode").addEventListener("change",()=>{$("mode-note").textContent=$("search-mode").value==="market"?"Compare localized Google News results, regardless of publisher country.":"Only registered publisher domains are included for each country.";});
     document.querySelectorAll("[data-panel]").forEach(b=>b.addEventListener("click",()=>{if(!groups.length){setStatus("Search for an issue first.");return;} $(b.dataset.panel).scrollIntoView({behavior:"smooth",block:"start"});}));
-    function keywordStats(group) {
-      const excluded = new Set(tokenize(currentQuery, "en"));
-      const counts = new Map();
-      for (const article of group.articles) {
-        const uniqueTerms = new Set(tokenize(article.english || "", "en"));
-        for (const term of uniqueTerms) {
-          if (!excluded.has(term)) counts.set(term, (counts.get(term) || 0) + 1);
-        }
+    let corpus=[], vectors=[], similarities=[], relatedAnchor=null;
+    function buildCorpus() {
+      const byURL=new Map(), excluded=new Set(tokenize(currentQuery,"en"));
+      for(const group of groups) for(const article of group.articles) {
+        if(!article.english) continue;
+        const terms=tokenize(article.english,"en").filter(t=>!excluded.has(t));
+        if(!terms.length) continue;
+        if(!byURL.has(article.link)) byURL.set(article.link,{article,terms,groups:[]});
+        const item=byURL.get(article.link); if(!item.groups.includes(group.name)) item.groups.push(group.name);
       }
-      return [...counts.entries()].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 5);
+      corpus=[...byURL.values()]; const df=new Map();
+      for(const item of corpus) for(const t of new Set(item.terms)) df.set(t,(df.get(t)||0)+1);
+      vectors=corpus.map(item=>{const v=new Map(); for(const t of item.terms) v.set(t,(v.get(t)||0)+1); let norm=0; for(const [t,n] of v){const w=n*(Math.log((1+corpus.length)/(1+df.get(t)))+1);v.set(t,w);norm+=w*w;} norm=Math.sqrt(norm);for(const [t,w] of v)v.set(t,w/norm);return v;});
+      similarities=vectors.map(v=>vectors.map(w=>Math.min(1,[...v].reduce((n,[t,x])=>n+x*(w.get(t)||0),0))));
     }
-    function renderKeywords() {
-      const wrap = $("keyword-grid");
-      wrap.replaceChildren();
-      groups.forEach(group => {
-        const card = element("div", "keyword-card");
-        const head = element("div", "card-top");
-        head.append(element("span", "market-name", group.name));
-        head.append(element("span", "count-badge", group.articles.filter(a=>a.english).length + " / " + group.articles.length + " analyzed"));
-        card.append(head);
-        if (group.error) {
-          card.append(element("p", "fine", "Search failed: " + group.error));
-        } else if (!group.articles.length) {
-          card.append(element("p", "fine", "No headlines returned."));
-        } else {
-          const keywords = keywordStats(group);
-          if (!keywords.length) card.append(element("p", "fine", "Not enough headline terms."));
-          keywords.forEach(([term, frequency]) => {
-            const line = element("div", "term");
-            const row = element("div", "term-label");
-            row.append(element("strong", null, term));
-            row.append(element("span", null, frequency + " / " + group.articles.filter(a=>a.english).length));
-            const track = element("div", "term-track");
-            const fill = element("div", "term-fill");
-            fill.style.width = String(Math.round(frequency / group.articles.filter(a=>a.english).length * 100)) + "%";
-            track.append(fill);
-            line.append(row, track);
-            card.append(line);
-          });
-        }
-        wrap.append(card);
-      });
-    }
+    function sourceRow(item,score){const row=element("div","article");row.append(element("p","fine",item.groups.join(" / ")+" · "+(item.article.source||"Unknown publisher")+" · "+(item.article.date||"Date unavailable")));const link=element("a","article-title",item.article.english||item.article.title);link.href=item.article.link;link.target="_blank";link.rel="noopener noreferrer";row.append(link);if(item.article.english!==item.article.title)row.append(element("p","fine",item.article.title));if(score!==undefined)row.append(element("p","fine","Cosine similarity: "+score.toFixed(3)));return row;}
+    function renderRelated(){const wrap=$("related-results");wrap.replaceChildren();if(!corpus.length){wrap.append(element("p","fine","No analyzable English headlines."));return;}const select=element("select");select.setAttribute("aria-label","Select reference article");select.style.width="100%";const prompt=element("option",null,"Choose a reference article");prompt.value="";select.append(prompt);corpus.forEach((item,i)=>{const opt=element("option",null,item.groups.join(" / ")+" — "+item.article.english);opt.value=String(i);select.append(opt);});const idx=corpus.findIndex(x=>x.article.link===relatedAnchor?.link);select.value=idx<0?"":String(idx);select.addEventListener("change",()=>{relatedAnchor=select.value===""?null:corpus[Number(select.value)].article;renderRelated();});wrap.append(select);if(idx<0){wrap.append(element("p","fine",relatedAnchor?"This headline has no usable English terms.":"Choose a headline here or use Find related on a news card."));return;}wrap.append(sourceRow(corpus[idx]));const matches=corpus.map((item,i)=>({item,i,score:similarities[idx][i]})).filter(x=>x.i!==idx&&x.score>=0.10&&x.item.groups.some(g=>!corpus[idx].groups.includes(g))).sort((a,b)=>b.score-a.score).slice(0,8);wrap.append(element("h3",null,"Related headlines in other countries"));if(!matches.length)wrap.append(element("p","fine","No cross-country match above similarity 0.10."));matches.forEach(x=>wrap.append(sourceRow(x.item,x.score)));}
+    function clusterIndices(){let clusters=corpus.map((_,i)=>[i]);while(true){let best=0.20,pair=null;for(let i=0;i<clusters.length;i++)for(let j=i+1;j<clusters.length;j++){let sum=0;for(const a of clusters[i])for(const b of clusters[j])sum+=similarities[a][b];const score=sum/(clusters[i].length*clusters[j].length);if(score>=best){best=score;pair=[i,j];}}if(!pair)break;const [i,j]=pair;clusters[i]=clusters[i].concat(clusters[j]);clusters.splice(j,1);}return clusters.sort((a,b)=>b.length-a.length);}
+    function renderKeywords(){const wrap=$("keyword-grid");wrap.replaceChildren();const clusters=clusterIndices();const grouped=clusters.filter(c=>c.length>1), isolated=clusters.filter(c=>c.length===1).flat();wrap.append(element("p","fine",`${corpus.length} distinct English headlines analyzed · ${grouped.length} clusters · ${isolated.length} isolated`));for(const ids of grouped){const weights=new Map(),counts=new Map();for(const i of ids){for(const [t,w] of vectors[i])weights.set(t,(weights.get(t)||0)+w);for(const g of corpus[i].groups)counts.set(g,(counts.get(g)||0)+1);}const label=[...weights].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,3).map(x=>x[0]).join(" · ");const card=element("div","keyword-card");card.append(element("h3",null,label),element("p","fine",ids.length+" distinct articles"),element("p","fine",[...counts].map(([g,n])=>g+": "+n).join(" / ")));const details=element("details");details.append(element("summary",null,"View articles"));ids.forEach(i=>details.append(sourceRow(corpus[i])));card.append(details);wrap.append(card);}if(isolated.length){const d=element("details","keyword-card");d.append(element("summary",null,`Unclustered headlines (${isolated.length})`));isolated.forEach(i=>d.append(sourceRow(corpus[i])));wrap.append(d);}if(!corpus.length)wrap.append(element("p","fine","No analyzable English headlines."));}
     function renderTabs() {
       const wrap = $("market-tabs");
       wrap.replaceChildren();
@@ -383,7 +351,7 @@
         add.disabled = !selectedAlready && selected.size >= 3;
         add.setAttribute("aria-pressed", String(selectedAlready));
         add.addEventListener("click", () => addOrRemove(article, group));
-        actions.append(add);
+        actions.append(add); const related=element("button","secondary","Find related"); related.type="button"; related.addEventListener("click",()=>{relatedAnchor=article;renderRelated();$("related-section").scrollIntoView({behavior:"smooth"});}); actions.append(related);
         const open = element("a", "read-link", "Read original");
         open.href = article.link;
         open.target = "_blank";
@@ -396,45 +364,8 @@
         wrap.append(card);
       });
     }
-    function compareTerms(entries) {
-      const terms = entries.map(({article,lang}) => [...new Set(tokenize(article.english || "", "en"))]);
-      if(entries.some(e=>!e.article.english)) return {terms,common:[],unique:terms.map(()=>[]), incomplete:true};
-      const counts = new Map();
-      terms.forEach(list => list.forEach(t => counts.set(t,(counts.get(t)||0)+1)));
-      return {terms, common:[...counts].filter(([,n])=>n===entries.length).map(([t])=>t), unique:terms.map(list=>list.filter(t=>counts.get(t)===1))};
-    }
-    function chips(target, terms, kind) {
-      if (!terms.length) target.append(element("span","fine","None"));
-      else terms.forEach(t=>target.append(element("span","chip "+kind,t)));
-    }
-    function highlightHeadline(link, title, lang, common, unique) {
-      const parts = typeof Intl.Segmenter === "function" ? [...new Intl.Segmenter(lang || "en",{granularity:"word"}).segment(title)].map(x=>x.segment) : title.split(/([\p{L}\p{N}]+)/u);
-      parts.forEach(part=>{
-        const t=tokenize(part,lang || "en")[0];
-        if(t && (common.includes(t)||unique.includes(t))) link.append(element("mark",unique.includes(t)?"unique":null,part));
-        else link.append(document.createTextNode(part));
-      });
-    }
-    function renderAnalysis(entries, analysis) {
-      $("headline-analysis").classList.toggle("hidden",entries.length<2);
-      $("copy-feedback").textContent="";
-      $("common-terms").replaceChildren(); $("compare-rows").replaceChildren();
-      if(entries.length<2) return;
-      if(analysis.incomplete) $("common-terms").append(element("span","fine","Comparison unavailable: one or more translations failed.")); else chips($("common-terms"),analysis.common,"common");
-      entries.forEach(({article,market},i)=>{
-        const row=element("tr"); const title=element("td");
-        const a=element("a",null,article.title); a.href=article.link; a.target="_blank"; a.rel="noopener noreferrer"; title.append(a); if(article.english!==article.title) title.append(element("p","fine",article.english||"Translation unavailable"));
-        row.append(title,element("td",null,(article.source||"Unknown publisher")+" / "+market),element("td",null,article.date||"Date unavailable"));
-        const all=element("td"); chips(all,analysis.terms[i],""); const only=element("td"); if(analysis.incomplete) only.textContent="Unavailable"; else chips(only,analysis.unique[i],"unique"); row.append(all,only); $("compare-rows").append(row);
-      });
-    }
-    $("copy-comparison").addEventListener("click",async()=>{
-      const entries=[...selected.values()]; if(entries.length<2)return;
-      const a=compareTerms(entries);
-      const text=["GLOBAL PERSPECTIVE — Headline comparison", "Issue: "+currentQuery,"Common keywords: "+(a.incomplete?"Unavailable":a.common.join(", ")||"None"), ...entries.map(({article,market},i)=>["",`${i+1}. ${article.title}`,"English: "+(article.english||"Unavailable"),"Publisher: "+(article.source||"Unknown publisher"),(currentMode==="publisher"?"Publisher country: ":"Search market: ")+market,"Published: "+(article.date||"Date unavailable"),"Keywords: "+(a.terms[i].join(", ")||"None"),"Unique keywords: "+(a.incomplete?"Unavailable":a.unique[i].join(", ")||"None"),"Original: "+article.link].join("\n")),"","Source: SerpApi Google News; English translation: MyMemory. Exact headline terms only."].join("\n");
-      try { await navigator.clipboard.writeText(text); $("copy-feedback").textContent="Comparison copied."; }
-      catch { const field=element("textarea"); field.value=text; field.setAttribute("aria-label","Comparison text"); field.style.width="100%"; $("copy-feedback").replaceChildren(document.createTextNode("Copy manually (Ctrl+C): "),field); field.select(); }
-    });
+    function renderAnalysis(entries){$("headline-analysis").classList.toggle("hidden",entries.length<2);$("copy-feedback").textContent="";$("compare-rows").replaceChildren();for(const {article,market} of entries){const row=element("tr"),title=element("td"),a=element("a",null,article.title);a.href=article.link;a.target="_blank";a.rel="noopener noreferrer";title.append(a);if(article.english!==article.title)title.append(element("p","fine",article.english||"Translation unavailable"));row.append(title,element("td",null,(article.source||"Unknown publisher")+" / "+market),element("td",null,article.date||"Date unavailable"));$("compare-rows").append(row);}}
+    $("copy-comparison").addEventListener("click",async()=>{const text=["GLOBAL PERSPECTIVE — Source comparison","Issue: "+currentQuery,...[...selected.values()].map(({article,market})=>[article.title,article.english||"Translation unavailable",market,article.source,article.date,article.link].join("\n"))].join("\n\n");try{await navigator.clipboard.writeText(text);$("copy-feedback").textContent="Comparison copied.";}catch{const field=element("textarea");field.value=text;$("copy-feedback").replaceChildren(field);field.select();}});
     function renderBoard() {
       const wrap = $("board-grid");
       wrap.replaceChildren();
@@ -445,8 +376,7 @@
         ? "Select at least two different articles to compare."
         : "Compare English headlines and original sources. Open the source to read the full text.";
       const entries=[...selected.values()];
-      const analysis=compareTerms(entries);
-      renderAnalysis(entries,analysis);
+      renderAnalysis(entries);
       if (!selected.size) {
         wrap.append(element("div", "empty", "Your comparison board is empty. Add articles from different countries above."));
         return;
@@ -459,8 +389,7 @@
         link.href = article.link;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        if(entries.length>=2 && !analysis.incomplete) highlightHeadline(link,article.english,"en",analysis.common,analysis.unique[i]);
-        else link.textContent = article.english || article.title;
+        link.textContent = article.english || article.title;
         h3.append(link);
         card.append(h3); if(article.english!==article.title) card.append(element("p","fine", "Original: "+article.title));
         card.append(element("p", null, (article.source || "Unknown publisher") + " · " + (article.date || "Date unavailable")));
@@ -485,7 +414,7 @@
       $("stat-markets").textContent = String(groups.filter(group => !group.error).length);
       $("stat-articles").textContent = String(groups.reduce((sum, group) => sum + group.articles.length, 0));
       $("stat-publishers").textContent = String(new Set(groups.flatMap(group => group.articles.map(a => a.source.toLocaleLowerCase())).filter(Boolean)).size);
-      renderKeywords();
+      relatedAnchor=null; buildCorpus(); renderRelated(); renderKeywords();
       renderTabs();
       renderArticles();
       renderBoard();
@@ -536,7 +465,7 @@
       currentQuery = query;
       currentMode = $("search-mode").value;
       $("search-mode").disabled=true;
-      $("keywords-title").textContent=currentMode==="publisher"?"Keywords by publisher country":"Keywords by search market";
+      $("keywords-title").textContent="Topic Clusters";
       selected.clear();
       groups = [];
       $("results-area").classList.add("hidden");
